@@ -267,17 +267,17 @@ async def on_shutdown(bot: Bot):
 def main():
     # Register all handlers
     register_handlers(router)
-    if not current_config.heroku_app_name:
+    # if not current_config.heroku_app_name:
         # Run in polling mode
-        asyncio.run(dp.start_polling(bot, skip_updates=True))
-    else:
-        # Run in webhook mode
-        app = web.Application()
-        SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
-        setup_application(app, dp, bot=bot)
-
-        # Start the web application
-        web.run_app(app, host=WEBAPP_HOST, port=WEBAPP_PORT)
+    asyncio.run(dp.start_polling(bot, skip_updates=True))
+    # else:
+    #     # Run in webhook mode
+    #     app = web.Application()
+    #     SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
+    #     setup_application(app, dp, bot=bot)
+    #
+    #     # Start the web application
+    #     web.run_app(app, host=WEBAPP_HOST, port=WEBAPP_PORT)
 
 
 if __name__ == "__main__":

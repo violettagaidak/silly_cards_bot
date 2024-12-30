@@ -26,7 +26,7 @@ load_dotenv()
 current_config = BotConfig(
     token=environ['BOT_TOKEN'],
     # payment_token="",
-    heroku_app_name="silly-greetings"
+    heroku_app_name="silly-greetings-f554daa29fb8"
 )
 
 WEBAPP_HOST = '0.0.0.0'

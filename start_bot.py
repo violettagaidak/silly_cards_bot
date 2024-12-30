@@ -33,6 +33,9 @@ WEBAPP_HOST = '0.0.0.0'
 WEBAPP_PORT = int(getenv('PORT', default=8000))
 WEBHOOK_PATH = f"/webhook/{current_config.token}"
 
+print(environ['BOT_TOKEN'])
+print(WEBAPP_PORT)
+
 bot = Bot(token=current_config.token)
 storage = MemoryStorage()
 router = Router()

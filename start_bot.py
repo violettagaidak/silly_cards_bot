@@ -1,13 +1,17 @@
 import asyncio
-from os import environ
+from os import environ, getenv
 
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram import Router, types, Bot, Dispatcher
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
+from aiohttp import web
+from aiogram.types import BotCommand
 from aiogram.fsm.state import State
 from dotenv import load_dotenv
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+
 
 from utils.replies import text_message_reply, variants_message_reply
 from utils.util_classes import AnswerField, BotConfig, MainForm
@@ -19,12 +23,15 @@ from utils.gpt_helper import create_congratulation
 TEXT_LIMIT = 120
 load_dotenv()
 
-
 current_config = BotConfig(
     token=environ['BOT_TOKEN'],
     # payment_token="",
-    heroku_app_name="silly-greetings"
+    heroku_app_name=""
 )
+
+WEBAPP_HOST = '0.0.0.0'
+WEBAPP_PORT = int(getenv('PORT', default=8000))
+WEBHOOK_PATH = f"/webhook/{current_config.token}"
 
 bot = Bot(token=current_config.token)
 storage = MemoryStorage()
@@ -237,13 +244,38 @@ def register_handlers(router: Router):
     router.message.register(keywords_reply_error, StateFilter(MainForm.keywords_error))
 
 
-async def main():
+async def on_startup(bot: Bot):
+    # Set default commands (optional)
+    await bot.set_my_commands([
+        BotCommand(command="start", description="Start the bot")
+    ])
+    # Set the webhook URL
+    webhook_url = f"https://{current_config.heroku_app_name}.herokuapp.com{WEBHOOK_PATH}"
+    await bot.set_webhook(webhook_url)
+    print(f"Webhook set to: {webhook_url}")
+
+
+async def on_shutdown(bot: Bot):
+    # Gracefully shutdown webhook and close bot session
+    await bot.delete_webhook()
+    await bot.session.close()
+
+
+def main():
+    # Register all handlers
     register_handlers(router)
-    try:
-        await dp.start_polling(bot)
-    except (KeyboardInterrupt, SystemExit):
-        print("Bot stopped!")
+    if not current_config.heroku_app_name:
+        # Run in polling mode
+        asyncio.run(dp.start_polling(bot, skip_updates=True))
+    else:
+        # Run in webhook mode
+        app = web.Application()
+        SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
+        setup_application(app, dp, bot=bot)
+
+        # Start the web application
+        web.run_app(app, host=WEBAPP_HOST, port=WEBAPP_PORT)
 
 
-if __name__ == '__main__':
-    asyncio.run(main())
+if __name__ == "__main__":
+    main()

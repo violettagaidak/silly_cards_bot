@@ -48,6 +48,7 @@ async def start(message: types.Message, state: FSMContext):
     await state.set_state(MainForm.start)
     ok_button = InlineKeyboardButton(text="Погнали!", callback_data='okay')
     inline_kb = InlineKeyboardMarkup(row_width=1, inline_keyboard=[[ok_button]])
+    print(message.chat.id)
     await bot.send_message(message.chat.id, MainBotStrings.helloMessage, reply_markup=ReplyKeyboardRemove())
     await bot.send_message(text=MainBotStrings.hello2Message, reply_markup=inline_kb, chat_id=message.chat.id)
 

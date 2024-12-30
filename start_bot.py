@@ -22,8 +22,8 @@ load_dotenv()
 
 current_config = BotConfig(
     token=environ['BOT_TOKEN'],
-    payment_token="",
-    heroku_app_name=""
+    # payment_token="",
+    heroku_app_name="silly-greetings"
 )
 
 bot = Bot(token=current_config.token)
